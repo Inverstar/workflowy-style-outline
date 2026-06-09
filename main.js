@@ -5000,7 +5000,7 @@ var TagSuggestMenu = class {
 
 // src/ui/outline-item.ts
 var _OutlineItem = class {
-  constructor(block, editor, onUpdate, onFocus, onRender, getMultiSelectionManager, onBulletClick, getZoomedBlockId, app, sourcePath, settings3, viewId, orderIndex, slashCommandMenu, lazyHeavyRender, parentComponent) {
+  constructor(block, editor, onUpdate, onFocus, onRender, getMultiSelectionManager, onBulletClick, getZoomedBlockId, app, sourcePath, settings3, viewId, orderIndex, slashCommandMenu, lazyHeavyRender) {
     this.collapseIndicator = null;
     this.checkboxElement = null;
     // Obsidian 集成
@@ -5051,8 +5051,6 @@ var _OutlineItem = class {
     this.orderIndex = 1;
     // 存储渲染用的 Component，用于生命周期管理
     this.renderComponent = null;
-    // 父级组件，用于挂载生命周期
-    this.parentComponent = null;
     var _a;
     this.block = block;
     this.editor = editor;
@@ -5069,7 +5067,6 @@ var _OutlineItem = class {
     this.orderIndex = orderIndex || 1;
     this.slashCommandMenu = slashCommandMenu || null;
     this.lazyHeavyRender = lazyHeavyRender === true;
-    this.parentComponent = parentComponent || null;
     if (app) {
       this.tagSuggestMenu = new TagSuggestMenu(app);
     }
@@ -7291,19 +7288,11 @@ var _OutlineItem = class {
     });
     this.eventHandlers = [];
     if (this.obsidianRenderer) {
-      if (this.parentComponent) {
-        this.parentComponent.removeChild(this.obsidianRenderer);
-      } else {
-        this.obsidianRenderer.onunload();
-      }
+      this.obsidianRenderer.onunload();
       this.obsidianRenderer = null;
     }
     if (this.renderComponent) {
-      if (this.parentComponent) {
-        this.parentComponent.removeChild(this.renderComponent);
-      } else {
-        this.renderComponent.unload();
-      }
+      this.renderComponent.unload();
       this.renderComponent = null;
     }
     if (this.livePreviewEditor) {
@@ -7471,21 +7460,13 @@ var _OutlineItem = class {
         this.onUpdate(this.block.id, newContent);
       }
     );
-    if (this.parentComponent) {
-      this.parentComponent.addChild(this.obsidianRenderer);
-    }
     await this.obsidianRenderer.render();
     if (this.destroyed) {
-      if (this.parentComponent) {
-        this.parentComponent.removeChild(this.obsidianRenderer);
-      } else {
-        (_a = this.obsidianRenderer) == null ? void 0 : _a.onunload();
-      }
+      (_a = this.obsidianRenderer) == null ? void 0 : _a.onunload();
       this.obsidianRenderer = null;
       rendererContainer.remove();
       return;
     }
-    this.postProcessImages(rendererContainer);
     rendererContainer.addEventListener("click", () => {
       this.onFocus(this.block.id);
     });
@@ -7769,11 +7750,7 @@ var _OutlineItem = class {
       return;
     }
     const renderComponent = new import_obsidian6.Component();
-    if (this.parentComponent) {
-      this.parentComponent.addChild(renderComponent);
-    } else {
-      renderComponent.load();
-    }
+    renderComponent.load();
     try {
       const lines = content.split("\n");
       const isTableLine = (line) => {
@@ -7825,7 +7802,6 @@ var _OutlineItem = class {
         this.sourcePath || "",
         renderComponent
       );
-      this.postProcessImages(this.displayElement);
       this.enableAllInteractions();
       this.lastRenderedContent = content;
     } catch (error) {
@@ -7834,52 +7810,10 @@ var _OutlineItem = class {
       this.lastRenderedContent = content;
     } finally {
       if (this.renderComponent) {
-        if (this.parentComponent) {
-          this.parentComponent.removeChild(this.renderComponent);
-        } else {
-          this.renderComponent.unload();
-        }
+        this.renderComponent.unload();
       }
       this.renderComponent = renderComponent;
     }
-  }
-  postProcessImages(el) {
-    if (!this.app || !el) return;
-    const embeds = el.querySelectorAll(".internal-embed");
-    embeds.forEach((embed) => {
-      if (embed.querySelector("img") || embed.querySelector("video") || embed.querySelector("audio")) {
-        return;
-      }
-      const srcAttr = embed.getAttribute("src");
-      if (!srcAttr) return;
-      const linkPath = srcAttr.split("|")[0];
-      const file = this.app.metadataCache.getFirstLinkpathDest(linkPath, this.sourcePath || "");
-      if (file) {
-        const resourceUrl = this.app.vault.getResourcePath(file);
-        embed.empty();
-        const img = embed.createEl("img");
-        img.src = resourceUrl;
-        const parts = srcAttr.split("|");
-        if (parts.length > 1) {
-          const widthStr = parts[1];
-          if (/^\d+$/.test(widthStr)) {
-            img.style.width = `${widthStr}px`;
-          }
-        }
-      }
-    });
-    const imgs = el.querySelectorAll("img");
-    imgs.forEach((img) => {
-      const src = img.getAttribute("src");
-      if (!src) return;
-      if (src.startsWith("app://") || src.startsWith("data:") || src.startsWith("http://") || src.startsWith("https://") || src.startsWith("webview-assets/")) {
-        return;
-      }
-      const file = this.app.metadataCache.getFirstLinkpathDest(decodeURIComponent(src), this.sourcePath || "");
-      if (file) {
-        img.src = this.app.vault.getResourcePath(file);
-      }
-    });
   }
   /**
    * 方案 E：检测当前显示层是否包含异步嵌入内容
@@ -12216,9 +12150,7 @@ var _MobileDOMPatcher = class {
         this.deps.settings,
         this.deps.getViewId(),
         computeOrderedListIndex(newBlock.id, this.deps.editor.getState().blocks),
-        this.deps.slashCommandMenu,
-        void 0,
-        this.deps.parentComponent
+        this.deps.slashCommandMenu
       );
       newItem.onViewUndo = this.deps.onViewUndo;
       newItem.onViewRedo = this.deps.onViewRedo;
@@ -13319,9 +13251,8 @@ var WorkflowyView = class extends import_obsidian9.FileView {
             // 有序列表序号
             this.slashCommandMenu,
             // Slash Command Menu
-            true,
+            true
             // 阶段3a：主视图启用非列表块懒渲染
-            this
           );
           const renderPromise = blockItem.waitForRender();
           if (renderPromise) {
@@ -13493,10 +13424,8 @@ var WorkflowyView = class extends import_obsidian9.FileView {
           // 视图唯一ID（用于跨文档拖拽）
           1,
           // orderIndex
-          this.slashCommandMenu,
+          this.slashCommandMenu
           // Slash Command Menu
-          void 0,
-          this
         );
         element = blockItem.getElement();
         blockItem.onViewUndo = () => this.executeUndo();
@@ -14569,7 +14498,6 @@ var WorkflowyView = class extends import_obsidian9.FileView {
       settings: this.plugin.settings,
       getVerticalLinesManager: () => this.verticalLinesManager,
       app: this.app,
-      parentComponent: this,
       getSourcePath: () => {
         var _a2;
         return ((_a2 = this.file) == null ? void 0 : _a2.path) || "";
@@ -17216,7 +17144,6 @@ var DailyNotesOutlineRenderer = class {
       settings: this.config.settings,
       getVerticalLinesManager: () => this.verticalLinesManager,
       app: this.config.app,
-      parentComponent: this,
       getSourcePath: () => this.config.sourcePath,
       getViewId: () => this.config.viewId,
       slashCommandMenu: this.slashCommandMenu,
@@ -17677,9 +17604,7 @@ var DailyNotesOutlineRenderer = class {
             this.config.settings,
             this.config.viewId,
             orderIndex,
-            this.slashCommandMenu,
-            void 0,
-            this
+            this.slashCommandMenu
           );
           if (import_obsidian14.Platform.isMobile && this.mobileDOMPatcher) {
             blockItem.setMobilePatcher({
