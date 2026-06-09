@@ -32,6 +32,8 @@ export class OutlineItem {
     private sourcePath: string = '';
     private obsidianRenderer: ObsidianBlockRenderer | null = null;
     private renderPromise: Promise<void> | null = null;
+    private parentComponent: Component | null = null;
+    private displayComponent: Component | null = null;
 
     // 双层渲染相关（Live Preview 模式）
     private settings: WorkflowyPluginSettings | null = null;
@@ -63,7 +65,8 @@ export class OutlineItem {
         getZoomedBlockId?: () => string | null,
         app?: App,
         sourcePath?: string,
-        settings?: WorkflowyPluginSettings
+        settings?: WorkflowyPluginSettings,
+        parentComponent?: Component
     ) {
         this.block = block;
         this.editor = editor;
@@ -76,6 +79,7 @@ export class OutlineItem {
         this.app = app || null;
         this.sourcePath = sourcePath || '';
         this.settings = settings || null;
+        this.parentComponent = parentComponent || null;
 
         // 创建全局拖拽指示元素（如果还没有创建）
         this.ensureDropZoneElements();
@@ -1564,6 +1568,14 @@ export class OutlineItem {
     }
 
     destroy(): void {
+        if (this.obsidianRenderer && this.parentComponent) {
+            this.parentComponent.removeChild(this.obsidianRenderer);
+            this.obsidianRenderer = null;
+        }
+        if (this.displayComponent && this.parentComponent) {
+            this.parentComponent.removeChild(this.displayComponent);
+            this.displayComponent = null;
+        }
         this.element.remove();
     }
 
@@ -1614,7 +1626,7 @@ export class OutlineItem {
         // 创建拖拽图像容器
         const dragContainer = document.createElement('div');
         dragContainer.setCssProps({'css-text': `
-            position: absolute});
+            position: absolute;
             top: -1000px;
             left: -1000px;
             background: var(--background-primary);
@@ -1626,16 +1638,16 @@ export class OutlineItem {
             font-size: 12px;
             color: var(--text-normal);
             z-index: 9999;
-        `;
+        `});
 
         // 添加计数标签
         const countLabel = document.createElement('div');
         countLabel.textContent = `拖拽 ${selectedBlocks.length} 个节点`;
         countLabel.setCssProps({'css-text': `
-            font-weight: 500});
+            font-weight: 500;
             margin-bottom: 4px;
             color: var(--text-accent);
-        `;
+        `});
         dragContainer.appendChild(countLabel);
 
         // 添加前几个节点的预览
@@ -1650,10 +1662,10 @@ export class OutlineItem {
                 const previewItem = document.createElement('div');
                 previewItem.textContent = `• ${content.slice(0, 20)}${content.length > 20 ? '...' : ''}`;
                 previewItem.setCssProps({'css-text': `
-                    opacity: 0.8});
+                    opacity: 0.8;
                     margin: 2px 0;
                     font-size: 11px;
-                `;
+                `});
                 dragContainer.appendChild(previewItem);
             }
         }
@@ -1663,11 +1675,11 @@ export class OutlineItem {
             const moreItem = document.createElement('div');
             moreItem.textContent = `... 还有 ${selectedBlocks.length - previewCount} 个节点`;
             moreItem.setCssProps({'css-text': `
-                opacity: 0.6});
+                opacity: 0.6;
                 margin: 2px 0;
                 font-size: 11px;
                 font-style: italic;
-            `;
+            `});
             dragContainer.appendChild(moreItem);
         }
 
@@ -1706,6 +1718,11 @@ export class OutlineItem {
                 this.onUpdate(this.block.id, newContent);
             }
         );
+
+        // 注册到父组件以管理其完整生命周期（确保图片和链接组件的正常加载与渲染）
+        if (this.parentComponent) {
+            this.parentComponent.addChild(this.obsidianRenderer);
+        }
 
         // 渲染内容
         await this.obsidianRenderer.render();
@@ -1933,8 +1950,16 @@ export class OutlineItem {
         // 获取当前内容（优先使用 editorElement 的值，因为它是最新的）
         const content = this.editorElement?.value || this.block.content;
 
-        // 创建一个临时的 Component 来避免内存泄漏
-        const tempComponent = new Component();
+        // 如果存在旧的渲染组件，从父组件卸载并移除以避免内存泄漏
+        if (this.displayComponent && this.parentComponent) {
+            this.parentComponent.removeChild(this.displayComponent);
+        }
+
+        // 创建新的 Component 并将其注册为父组件的子组件，以使它的子组件能够加载生命周期函数进行图片/嵌入渲染
+        this.displayComponent = new Component();
+        if (this.parentComponent) {
+            this.parentComponent.addChild(this.displayComponent);
+        }
         
         try {
             // 使用 Obsidian MarkdownRenderer（完整 Live Preview）
@@ -1942,7 +1967,7 @@ export class OutlineItem {
                 content,
                 this.displayElement,
                 this.sourcePath || '',
-                tempComponent
+                this.displayComponent
             );
 
             // 处理内部链接点击

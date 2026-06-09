@@ -187,8 +187,8 @@ export class NavigationHeader {
             return;
         }
 
-        if (this.themeMenu.setCssProps({'display': == 'none') {
-            this.showThemeMenu()});
+        if (this.themeMenu.style.display === 'none') {
+            this.showThemeMenu();
         } else {
             this.hideThemeMenu();
         }

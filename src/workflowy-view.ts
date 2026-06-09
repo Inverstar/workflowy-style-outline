@@ -215,6 +215,7 @@ export class WorkflowyView extends FileView {
         this.zoomManager = null;
 
         // 清理块元素
+        this.blockElements.forEach(item => item.destroy());
         this.blockElements.clear();
     }
 
@@ -410,6 +411,7 @@ export class WorkflowyView extends FileView {
             return;
         }
 
+        this.blockElements.forEach(item => item.destroy());
         editorContainer.empty();
         this.blockElements.clear();
 
@@ -586,7 +588,8 @@ export class WorkflowyView extends FileView {
                     () => this.zoomManager?.getZoomedBlockId() || null, // 获取当前zoom的块ID
                     this.app, // Obsidian App 实例
                     this.file?.path || '', // 文件路径
-                    this.plugin.settings // 插件设置
+                    this.plugin.settings, // 插件设置
+                    this // 传入当前视图作为 parentComponent
                 );
 
                 // 如果是异步渲染的块，收集 Promise
@@ -665,7 +668,8 @@ export class WorkflowyView extends FileView {
                 () => this.zoomManager?.getZoomedBlockId() || null, // 获取当前zoom的块ID
                 this.app, // Obsidian App 实例
                 this.file?.path || '', // 文件路径
-                this.plugin.settings // 插件设置
+                this.plugin.settings, // 插件设置
+                this // 传入当前视图作为 parentComponent
             );
 
             const element = blockItem.getElement();
@@ -693,13 +697,13 @@ export class WorkflowyView extends FileView {
                     const emptyHint = container.createDiv('workflowy-empty-hint');
                     emptyHint.textContent = '点击新增节点';
                     emptyHint.setCssProps({'css-text': `
-                        padding-left: 60px});
+                        padding-left: 60px;
                         color: var(--text-muted);
                         font-style: italic;
                         cursor: pointer;
                         padding-top: 8px;
                         padding-bottom: 8px;
-                    `;
+                    `});
                     
                     // 点击提示时创建第一个子节点
                     emptyHint.addEventListener('click', () => {

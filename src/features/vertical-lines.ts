@@ -63,7 +63,7 @@ export class VerticalLinesManager {
 
         // 设置容器样式
         this.scroller.setCssProps({'css-text': `
-            position: absolute});
+            position: absolute;
             top: 0;
             left: 0;
             right: 0;
@@ -71,13 +71,13 @@ export class VerticalLinesManager {
             pointer-events: none;
             z-index: 1;
             overflow: hidden;
-        `;
+        `});
 
         this.contentContainer.setCssProps({'css-text': `
-            position: relative});
+            position: relative;
             width: 100%;
             height: 100%;
-        `;
+        `});
     }
 
     /**

@@ -43,13 +43,13 @@ export class MultiSelectionManager {
         this.selectionBox = document.createElement('div');
         this.selectionBox.className = 'workflowy-selection-box';
         this.selectionBox.setCssProps({'css-text': `
-            position: absolute});
+            position: absolute;
             border: 2px dashed var(--text-accent);
             background: rgba(var(--color-accent-rgb), 0.1);
             pointer-events: none;
             z-index: 1000;
             display: none;
-        `;
+        `});
         document.body.appendChild(this.selectionBox);
     }
 
@@ -60,7 +60,7 @@ export class MultiSelectionManager {
         this.selectionCounter = document.createElement('div');
         this.selectionCounter.className = 'workflowy-selection-counter';
         this.selectionCounter.setCssProps({'css-text': `
-            position: fixed});
+            position: fixed;
             top: 20px;
             right: 20px;
             background: var(--background-secondary);
@@ -71,7 +71,7 @@ export class MultiSelectionManager {
             color: var(--text-muted);
             z-index: 1001;
             display: none;
-        `;
+        `});
         document.body.appendChild(this.selectionCounter);
     }
 
