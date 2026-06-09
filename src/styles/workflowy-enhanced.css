@@ -3,7 +3,7 @@
 /* 主容器 */
 .workflowy-container {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    font-size: 14px;
+    font-size: var(--font-text-size, 14px);
     line-height: 1.5;
     color: var(--text-normal);
     background: var(--background-primary);
@@ -157,10 +157,11 @@
 /* 内容编辑区 */
 .workflowy-content {
     flex: 1;
+    min-width: 0;
     outline: none;
     border: none;
     background: transparent;
-    font-size: 14px;
+    font-size: inherit;
     line-height: 1.5;
     padding: 4px 8px;
     margin: 0;
@@ -1248,6 +1249,7 @@ mark.search-highlight {
 .workflowy-content-wrapper {
     position: relative;
     flex: 1;
+    min-width: 0;
 }
 
 /* 显示层（MarkdownRenderer 渲染结果） - 与源码模式完全一致 */
@@ -1256,7 +1258,7 @@ mark.search-highlight {
     outline: none;
     border: none;
     background: transparent;
-    font-size: 14px;
+    font-size: inherit;
     line-height: 1.5;
     padding: 4px 8px;
     margin: 0;
@@ -1284,7 +1286,7 @@ mark.search-highlight {
     outline: none !important;
     border: none !important;
     background: transparent !important;
-    font-size: 14px !important;
+    font-size: inherit !important;
     line-height: 1.5 !important;
     padding: 4px 8px !important;
     margin: 0 !important;
