@@ -7485,6 +7485,7 @@ var _OutlineItem = class {
       rendererContainer.remove();
       return;
     }
+    this.postProcessImages(rendererContainer);
     rendererContainer.addEventListener("click", () => {
       this.onFocus(this.block.id);
     });
@@ -7824,6 +7825,7 @@ var _OutlineItem = class {
         this.sourcePath || "",
         renderComponent
       );
+      this.postProcessImages(this.displayElement);
       this.enableAllInteractions();
       this.lastRenderedContent = content;
     } catch (error) {
@@ -7840,6 +7842,44 @@ var _OutlineItem = class {
       }
       this.renderComponent = renderComponent;
     }
+  }
+  postProcessImages(el) {
+    if (!this.app || !el) return;
+    const embeds = el.querySelectorAll(".internal-embed");
+    embeds.forEach((embed) => {
+      if (embed.querySelector("img") || embed.querySelector("video") || embed.querySelector("audio")) {
+        return;
+      }
+      const srcAttr = embed.getAttribute("src");
+      if (!srcAttr) return;
+      const linkPath = srcAttr.split("|")[0];
+      const file = this.app.metadataCache.getFirstLinkpathDest(linkPath, this.sourcePath || "");
+      if (file) {
+        const resourceUrl = this.app.vault.getResourcePath(file);
+        embed.empty();
+        const img = embed.createEl("img");
+        img.src = resourceUrl;
+        const parts = srcAttr.split("|");
+        if (parts.length > 1) {
+          const widthStr = parts[1];
+          if (/^\d+$/.test(widthStr)) {
+            img.style.width = `${widthStr}px`;
+          }
+        }
+      }
+    });
+    const imgs = el.querySelectorAll("img");
+    imgs.forEach((img) => {
+      const src = img.getAttribute("src");
+      if (!src) return;
+      if (src.startsWith("app://") || src.startsWith("data:") || src.startsWith("http://") || src.startsWith("https://") || src.startsWith("webview-assets/")) {
+        return;
+      }
+      const file = this.app.metadataCache.getFirstLinkpathDest(decodeURIComponent(src), this.sourcePath || "");
+      if (file) {
+        img.src = this.app.vault.getResourcePath(file);
+      }
+    });
   }
   /**
    * 方案 E：检测当前显示层是否包含异步嵌入内容
