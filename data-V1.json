@@ -1,0 +1,70 @@
+{
+  "ui": {
+    "indentSize": 30,
+    "showBullets": true,
+    "showCollapseIndicators": true,
+    "showVerticalLines": true,
+    "animationsEnabled": true,
+    "theme": "default",
+    "fontSize": 14,
+    "lineHeight": 1.5,
+    "bulletAlign": "top",
+    "fontFamily": "theme",
+    "customFontFamily": ""
+  },
+  "editor": {
+    "autoSave": true,
+    "autoSaveDelay": 1000,
+    "placeholder": "",
+    "renderMode": "source",
+    "attachmentPath": "default",
+    "customAttachmentPath": ""
+  },
+  "features": {
+    "slashCommand": true,
+    "tagSuggest": true,
+    "linkSuggest": true,
+    "crossDocumentDrag": true,
+    "autoBlockId": true,
+    "mobileToolbar": true
+  },
+  "search": {
+    "mode": "highlight",
+    "caseSensitive": false,
+    "autoExpandMatches": true
+  },
+  "dragDrop": {
+    "enabled": true,
+    "showDropIndicators": true,
+    "allowNestedDrop": true
+  },
+  "isolation": {
+    "strictMode": true,
+    "enableAssertions": true,
+    "debugMode": false,
+    "healthCheckInterval": 30000
+  },
+  "collapseState": {
+    "enabled": false,
+    "marker": "c"
+  },
+  "dailyNotes": {
+    "showRibbon": true,
+    "initialBatchSize": 3,
+    "unloadDelay": 1500,
+    "createTodayOnStartup": false,
+    "openOnStartup": false,
+    "theme": "default",
+    "fallback": {
+      "folder": "",
+      "format": "YYYY-MM-DD",
+      "template": ""
+    },
+    "presets": []
+  },
+  "thino": {
+    "enabled": true,
+    "timestampFormat": "HH:mm:ss",
+    "autoTimestamp": true
+  }
+}
